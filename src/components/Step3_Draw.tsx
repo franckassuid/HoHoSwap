@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useWizard } from '../context/WizardContext';
 import { matchSanta } from '../utils/santaLogic';
 import emailjs from '@emailjs/browser';
-import { AlertCircle, CheckCircle, Eye, EyeOff, Mail, RefreshCw, Send, Gift, Lock } from 'lucide-react';
+import { AlertCircle, CheckCircle, EyeOff, Mail, RefreshCw, Send, Gift, Lock } from 'lucide-react';
 import clsx from 'clsx';
 import { format } from 'date-fns';
 
