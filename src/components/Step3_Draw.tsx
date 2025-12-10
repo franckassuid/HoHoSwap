@@ -114,7 +114,7 @@ export const Step3_Draw = () => {
     } : null;
 
     const getFullEmailContent = (message: string) => {
-        return DEFAULT_TEMPLATE.replace('{{message}}', message || "Un petit mot pour toi...");
+        return DEFAULT_TEMPLATE.replace('{message}', message || "Un petit mot pour toi...");
     };
 
     const handleDraw = () => {
@@ -163,11 +163,7 @@ export const Step3_Draw = () => {
                 date: eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '',
                 prix: eventDetails.budget,
                 to_email: giver.email,
-                message: (customMessage || "Un petit mot pour toi...")
-                    .replace(/{donneur}/g, giver.name)
-                    .replace(/{cible}/g, receiver.name)
-                    .replace(/{date}/g, eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '')
-                    .replace(/{prix}/g, eventDetails.budget)
+                message: (customMessage || "")
             };
 
             try {
