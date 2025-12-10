@@ -6,89 +6,59 @@ import { AlertCircle, CheckCircle, EyeOff, Mail, RefreshCw, Send, Gift, Lock } f
 import clsx from 'clsx';
 import { format } from 'date-fns';
 
-const DEFAULT_TEMPLATE = `<!DOCTYPE html>
+const DEFAULT_TEMPLATE_PREVIEW = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HoHoSwap - Secret Santa</title>
     <style>
-        /* Reset et styles de base */
         body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
         .wrapper { width: 100%; table-layout: fixed; background-color: #f4f4f4; padding-bottom: 40px; }
         .main-container { background-color: #ffffff; margin: 0 auto; max-width: 600px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        
-        /* Header */
         .header { display: flex; flex-direction: column; align-items: center; background-color: #dc2626; padding: 30px 20px; text-align: center; }
         .header h1 { color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 1px; }
         .logo { height: 90px; width: 90px; margin-bottom: 10px; display: block; object-fit: contain; }
-
-        /* Contenu */
         .content { padding: 40px 30px; color: #333333; text-align: center; }
         .greeting { font-size: 18px; margin-bottom: 30px; color: #555555; }
-        
-        /* La carte du résultat */
         .reveal-card { background-color: #fef2f2; border: 2px dashed #dc2626; border-radius: 12px; padding: 25px; margin: 20px 0; }
         .reveal-title { font-size: 14px; text-transform: uppercase; color: #dc2626; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px; }
         .reveal-name { font-size: 32px; font-weight: bold; color: #1e293b; margin: 0; }
-
-        /* Détails */
         .details { margin-top: 30px; text-align: left; background-color: #f8fafc; border-radius: 8px; padding: 20px; }
-        .detail-item { font-size: 14px; margin-bottom: 10px; color: #475569; }
+        .detail-item { font-size: 20px; margin-bottom: 10px; color: #475569; }
         .detail-item strong { color: #0f172a; }
-
-        /* Message perso */
         .message-box { margin-top: 20px; font-style: italic; color: #64748b; font-size: 14px; border-left: 3px solid #cbd5e1; padding-left: 15px; text-align: left; }
-
-        /* Footer */
         .footer { background-color: #1e293b; color: #94a3b8; padding: 20px; text-align: center; font-size: 12px; }
-        .footer a { color: #cbd5e1; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="wrapper">
         <table class="main-container" align="center" border="0" cellpadding="0" cellspacing="0">
-            <!-- HEADER -->
             <tr>
                 <td class="header">
                     <img class="logo" src="https://raw.githubusercontent.com/franckassuid/HoHoSwap/refs/heads/main/public/logo.png" alt="HoHoSwap Logo">
                     <h1>HoHoSwap</h1>
                 </td>
             </tr>
-
-            <!-- CORPS -->
             <tr>
                 <td class="content">
                     <p class="greeting">Bonjour <strong>{donneur}</strong> !</p>
-                    
                     <p style="font-size: 16px; line-height: 1.5;">Le tirage au sort a été effectué.<br>Voici la personne à qui tu dois offrir un cadeau cette année :</p>
-
-                    <!-- CARTE RESULTAT -->
                     <div class="reveal-card">
                         <div class="reveal-title">Ta cible est</div>
                         <h2 class="reveal-name">{cible}</h2>
                     </div>
-
-                    <!-- DETAILS EVENT -->
                     <div class="details">
                         <div class="detail-item">📅 <strong>Date :</strong> {date}</div>
                         <div class="detail-item">💰 <strong>Budget Max :</strong> {prix}€</div>
-                        
-                        <!-- Message optionnel ajouté lors de l'envoi -->
-                        <div class="message-box">
-                            "{message}"
-                        </div>
+                        {message_block}
                     </div>
-
                     <p style="margin-top: 30px; font-size: 14px; color: #888;">Garde le secret jusqu'au jour J ! 🤫</p>
                 </td>
             </tr>
-
-            <!-- FOOTER -->
             <tr>
                 <td class="footer">
-                    Généré avec ❤️ par HoHoSwap<br>
-                    L'application de Secret Santa simple et gratuite.
+                    Généré avec ❤️ par HoHoSwap
                 </td>
             </tr>
         </table>
@@ -102,8 +72,10 @@ export const Step3_Draw = () => {
     const [error, setError] = useState<string | null>(null);
     const [showResults, setShowResults] = useState(false);
     const [customMessage, setCustomMessage] = useState('');
+    const [previewMessage, setPreviewMessage] = useState('');
     const [sendingState, setSendingState] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [progress, setProgress] = useState(0);
+    const [isDrawing, setIsDrawing] = useState(false);
 
     // Derived state for preview
     const previewData = participants[0] ? {
@@ -113,29 +85,37 @@ export const Step3_Draw = () => {
         prix: eventDetails.budget
     } : null;
 
+
     const getFullEmailContent = (message: string) => {
-        return DEFAULT_TEMPLATE.replace('{message}', message || "Un petit mot pour toi...");
+        const messageBlock = message.trim()
+            ? `<div class="message-box">"${message}"</div>`
+            : '';
+        return DEFAULT_TEMPLATE_PREVIEW.replace('{message_block}', messageBlock);
     };
 
     const handleDraw = () => {
         setError(null);
-        const result = matchSanta(participants);
-        if (result) {
-            setAssignments(result);
-            saveSession(); // Auto-save after a successful draw
-        } else {
-            setError("Impossible de trouver un tirage respectant les exclusions. Essayez d'assouplir les règles.");
-        }
+        setIsDrawing(true);
+
+        // 3 seconds animation simulation
+        setTimeout(() => {
+            const result = matchSanta(participants);
+            if (result) {
+                setAssignments(result);
+                saveSession(); // Auto-save after a successful draw
+            } else {
+                setError("Impossible de trouver un tirage respectant les exclusions. Essayez d'assouplir les règles.");
+            }
+            setIsDrawing(false);
+        }, 3000);
     };
 
     const handleSendEmails = async () => {
-        // Check for keys
         const serviceID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
         const templateID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
         const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
         if (!serviceID || serviceID === 'your_service_id') {
-            // Mock mode for demo if no keys
             setSendingState('sending');
             setTimeout(() => {
                 setSendingState('success');
@@ -147,14 +127,12 @@ export const Step3_Draw = () => {
         setSendingState('sending');
         setProgress(0);
         let successCount = 0;
-
         const total = participants.length;
 
         for (let i = 0; i < total; i++) {
             const giver = participants[i];
             const receiverId = assignments[giver.id];
             const receiver = participants.find(p => p.id === receiverId);
-
             if (!receiver) continue;
 
             const templateParams = {
@@ -163,7 +141,7 @@ export const Step3_Draw = () => {
                 date: eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '',
                 prix: eventDetails.budget,
                 to_email: giver.email,
-                message: (customMessage || "")
+                message: (previewMessage || "")
             };
 
             try {
@@ -172,7 +150,6 @@ export const Step3_Draw = () => {
             } catch (err) {
                 console.error(`Erreur d'envoi à ${giver.email}`, err);
             }
-
             setProgress(Math.round(((i + 1) / total) * 100));
         }
 
@@ -188,7 +165,7 @@ export const Step3_Draw = () => {
 
     const getPreviewHtml = () => {
         if (!previewData) return '';
-        return getFullEmailContent(customMessage)
+        return getFullEmailContent(previewMessage)
             .replace(/{donneur}/g, previewData.donneur)
             .replace(/{cible}/g, previewData.cible)
             .replace(/{date}/g, previewData.date)
@@ -201,24 +178,48 @@ export const Step3_Draw = () => {
             <div className="text-center space-y-4">
                 {!hasResults ? (
                     <div className="py-8">
-                        <p className="text-slate-600 mb-6">Participants prêts : <span className="font-bold">{participants.length}</span>. Prêt à tirer au sort ?</p>
-                        <div className="flex flex-col items-center gap-2">
-                            <button
-                                onClick={handleDraw}
-                                className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white text-lg font-bold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 animate-bounce-subtle"
-                            >
-                                <RefreshCw className="w-6 h-6" /> Lancer le Tirage
-                            </button>
-                            {error && (
-                                <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg flex items-center gap-2 max-w-md mx-auto border border-red-100">
-                                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                                    <span className="text-sm">{error}</span>
+                        {isDrawing ? (
+                            <div className="flex flex-col items-center justify-center py-10 animate-in fade-in duration-500">
+                                <div className="relative mb-6">
+                                    <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center shadow-inner">
+                                        <Gift className="w-12 h-12 text-red-600 animate-shake" />
+                                    </div>
+                                    <div className="absolute -top-1 -right-1">
+                                        <div className="w-4 h-4 bg-yellow-400 rounded-full animate-bounce delay-100" />
+                                    </div>
+                                    <div className="absolute -bottom-1 -left-1">
+                                        <div className="w-3 h-3 bg-green-400 rounded-full animate-bounce delay-300" />
+                                    </div>
                                 </div>
-                            )}
-                        </div>
+                                <div className="h-10 overflow-hidden flex flex-col items-center justify-center">
+                                    <span className="text-xl font-bold text-slate-800 animate-pulse">
+                                        Tirage au sort en cours...
+                                    </span>
+                                </div>
+                                <p className="text-sm text-slate-500 mt-2">Le Père Noël distribue les cadeaux !</p>
+                            </div>
+                        ) : (
+                            <>
+                                <p className="text-slate-600 mb-6">Participants prêts : <span className="font-bold">{participants.length}</span>. Prêt à tirer au sort ?</p>
+                                <div className="flex flex-col items-center gap-2">
+                                    <button
+                                        onClick={handleDraw}
+                                        className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white text-lg font-bold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 animate-bounce-subtle"
+                                    >
+                                        <RefreshCw className="w-6 h-6" /> Lancer le Tirage
+                                    </button>
+                                    {error && (
+                                        <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-lg flex items-center gap-2 max-w-md mx-auto border border-red-100">
+                                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                            <span className="text-sm">{error}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
                     </div>
                 ) : (
-                    <div className="bg-green-50 border border-green-200 p-6 rounded-xl flex flex-col items-center">
+                    <div className="bg-green-50 border border-green-200 p-6 rounded-xl flex flex-col items-center animate-in zoom-in-50 duration-500">
                         <CheckCircle className="w-12 h-12 text-green-600 mb-2" />
                         <h3 className="text-xl font-bold text-green-800">Tirage Réussi !</h3>
                         <p className="text-green-700">Chaque participant a reçu une cible secrète.</p>
@@ -230,7 +231,7 @@ export const Step3_Draw = () => {
                                 className="text-sm font-medium text-slate-600 flex items-center justify-center gap-2 hover:text-slate-900 mx-auto mb-2 transition-colors"
                             >
                                 {showResults ? <EyeOff className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                                {showResults ? 'Masquer les résultats (Admin)' : 'Voir les résultats (Zone Admin)'}
+                                {showResults ? 'Masquer les résultats (Zone Spoiler)' : 'Voir les résultats (Alert Spoiler)'}
                             </button>
 
                             {showResults && (
@@ -268,27 +269,26 @@ export const Step3_Draw = () => {
                         <p className="text-sm text-slate-500">
                             Ajoutez un petit mot personnel qui apparaîtra dans l'email envoyé à tous les participants.
                         </p>
-                        <textarea
-                            value={customMessage}
-                            onChange={(e) => setCustomMessage(e.target.value)}
-                            placeholder="Ex: Hâte de voir vos cadeaux ! N'oubliez pas le budget de 50€ max..."
-                            className="w-full h-32 p-3 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-sm bg-white"
-                        />
-                        <p className="text-xs text-slate-400 mt-2 italic">
-                            Le message se met à jour automatiquement dans l'aperçu ci-contre.
-                        </p>
+                        <div className="space-y-2">
+                            <textarea
+                                value={customMessage}
+                                onChange={(e) => setCustomMessage(e.target.value)}
+                                placeholder="Laissez vide pour ne rien ajouter..."
+                                className="w-full h-32 p-3 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-sm bg-white"
+                            />
+                            <button
+                                onClick={() => setPreviewMessage(customMessage)}
+                                className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-md transition-colors w-full md:w-auto"
+                            >
+                                Mettre à jour l'aperçu du mail
+                            </button>
+                        </div>
                     </div>
 
                     {/* Preview & Send */}
                     <div className="space-y-4 flex flex-col">
                         <div className="flex justify-between items-baseline">
                             <h3 className="font-semibold text-slate-700">Aperçu du mail</h3>
-                            <button
-                                onClick={() => setCustomMessage(customMessage)} // Force re-render if needed, but state change should do it
-                                className="text-xs text-red-600 hover:text-red-800 underline"
-                            >
-                                Rafraîchir l'aperçu
-                            </button>
                         </div>
                         <div className="flex-1 bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
                             {/* Mail Header Preview */}
@@ -325,7 +325,7 @@ export const Step3_Draw = () => {
             )}
 
             {/* Back Button */}
-            {!hasResults && (
+            {!hasResults && !isDrawing && (
                 <div className="flex justify-start">
                     <button onClick={() => setStep(2)} className="text-slate-500 hover:text-slate-800 underline flex items-center">
                         ← Retour aux exclusions

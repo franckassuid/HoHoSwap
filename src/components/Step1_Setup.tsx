@@ -188,6 +188,28 @@ export const Step1_Setup = () => {
                     {error && <p className="text-red-600 text-xs mt-2">{error}</p>}
                 </form>
 
+                <div className="flex justify-end mb-4">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (!eventDetails.name) updateEventDetails({ name: "Noël Test" });
+                            if (!eventDetails.date) updateEventDetails({ date: "2025-12-25" });
+                            if (!eventDetails.budget) updateEventDetails({ budget: "50" });
+
+                            const fakes = [
+                                { name: "Alice", email: "alice@exemple.com" },
+                                { name: "Bob", email: "bob@exemple.com" },
+                                { name: "Charlie", email: "charlie@exemple.com" },
+                                { name: "David", email: "david@exemple.com" }
+                            ];
+                            fakes.forEach(p => addParticipant(p));
+                        }}
+                        className="text-xs text-slate-400 hover:text-slate-600 underline"
+                    >
+                        Remplir avec des données de test
+                    </button>
+                </div>
+
                 {/* List */}
                 {participants.length === 0 ? (
                     <div className="text-center py-8 text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-300">
@@ -220,8 +242,8 @@ export const Step1_Setup = () => {
                     onClick={() => setStep(2)}
                     disabled={!canProceed}
                     className={`px-6 py-2.5 rounded-lg font-medium transition-all ${canProceed
-                            ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl translate-y-0'
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl translate-y-0'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         }`}
                 >
                     Étape Suivante : Exclusions

@@ -1,6 +1,7 @@
-import React from 'react';
+import { useState } from 'react';
 import { useWizard } from '../context/WizardContext';
 import { Users, Ban, Mail } from 'lucide-react';
+import { ConfirmationModal } from './ConfirmationModal';
 import clsx from 'clsx';
 
 interface StepIndicatorProps {
@@ -50,16 +51,19 @@ const StepIndicator = ({ currentStep }: StepIndicatorProps) => {
 
 export const WizardLayout = ({ children }: { children: React.ReactNode }) => {
     const { step, setStep } = useWizard();
+    const [isHomeModalOpen, setIsHomeModalOpen] = useState(false);
 
     const handleLogoClick = () => {
         // Navigate to home (Scenario: user wants to go back to dashboard/setup)
         if (step > 1) {
-            if (confirm("Revenir à l'accueil ? Votre progression actuelle est sauvegardée.")) {
-                setStep(1);
-            }
+            setIsHomeModalOpen(true);
         } else {
             setStep(1); // Already at 1, just ensure
         }
+    };
+
+    const confirmGoHome = () => {
+        setStep(1);
     };
 
     return (
@@ -95,6 +99,16 @@ export const WizardLayout = ({ children }: { children: React.ReactNode }) => {
             <footer className="py-6 text-center text-slate-400 text-sm">
                 <p>Développé avec ❤️ pour Noël</p>
             </footer>
+
+            <ConfirmationModal
+                isOpen={isHomeModalOpen}
+                onClose={() => setIsHomeModalOpen(false)}
+                onConfirm={confirmGoHome}
+                title="Retour à l'accueil"
+                message="Voulez-vous vraiment revenir à l'accueil ? Votre avancement actuel (participants, exclusions) sera conservé dans l'historique si vous avez commencé une session."
+                confirmText="Oui, revenir à l'accueil"
+                cancelText="Annuler"
+            />
         </div>
     );
 };
