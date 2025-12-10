@@ -163,7 +163,7 @@ export const Step3_Draw = () => {
                 date: eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '',
                 prix: eventDetails.budget,
                 to_email: giver.email,
-                message: getFullEmailContent(customMessage)
+                message: (customMessage || "Un petit mot pour toi...")
                     .replace(/{donneur}/g, giver.name)
                     .replace(/{cible}/g, receiver.name)
                     .replace(/{date}/g, eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '')
