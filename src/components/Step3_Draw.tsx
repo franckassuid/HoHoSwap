@@ -6,14 +6,95 @@ import { AlertCircle, CheckCircle, EyeOff, Mail, RefreshCw, Send, Gift, Lock } f
 import clsx from 'clsx';
 import { format } from 'date-fns';
 
-const DEFAULT_TEMPLATE = `Bonjour {donneur},
+const DEFAULT_TEMPLATE = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoHoSwap - Secret Santa</title>
+    <style>
+        /* Reset et styles de base */
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f4f4f4; padding-bottom: 40px; }
+        .main-container { background-color: #ffffff; margin: 0 auto; max-width: 600px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* Header */
+        .header { display: flex; flex-direction: column; align-items: center; background-color: #dc2626; padding: 30px 20px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 1px; }
+        .logo { height: 90px; width: 90px; margin-bottom: 10px; display: block; object-fit: contain; }
 
-Tu es le Secret Santa de : {cible} ! 🎁
+        /* Contenu */
+        .content { padding: 40px 30px; color: #333333; text-align: center; }
+        .greeting { font-size: 18px; margin-bottom: 30px; color: #555555; }
+        
+        /* La carte du résultat */
+        .reveal-card { background-color: #fef2f2; border: 2px dashed #dc2626; border-radius: 12px; padding: 25px; margin: 20px 0; }
+        .reveal-title { font-size: 14px; text-transform: uppercase; color: #dc2626; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px; }
+        .reveal-name { font-size: 32px; font-weight: bold; color: #1e293b; margin: 0; }
 
-La remise des cadeaux aura lieu le {date}.
-Budget maximum : {prix}€.
+        /* Détails */
+        .details { margin-top: 30px; text-align: left; background-color: #f8fafc; border-radius: 8px; padding: 20px; }
+        .detail-item { font-size: 14px; margin-bottom: 10px; color: #475569; }
+        .detail-item strong { color: #0f172a; }
 
-Joyeux Noël ! 🎄`;
+        /* Message perso */
+        .message-box { margin-top: 20px; font-style: italic; color: #64748b; font-size: 14px; border-left: 3px solid #cbd5e1; padding-left: 15px; text-align: left; }
+
+        /* Footer */
+        .footer { background-color: #1e293b; color: #94a3b8; padding: 20px; text-align: center; font-size: 12px; }
+        .footer a { color: #cbd5e1; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <table class="main-container" align="center" border="0" cellpadding="0" cellspacing="0">
+            <!-- HEADER -->
+            <tr>
+                <td class="header">
+                    <img class="logo" src="https://raw.githubusercontent.com/franckassuid/HoHoSwap/refs/heads/main/public/logo.png" alt="HoHoSwap Logo">
+                    <h1>HoHoSwap</h1>
+                </td>
+            </tr>
+
+            <!-- CORPS -->
+            <tr>
+                <td class="content">
+                    <p class="greeting">Bonjour <strong>{donneur}</strong> !</p>
+                    
+                    <p style="font-size: 16px; line-height: 1.5;">Le tirage au sort a été effectué.<br>Voici la personne à qui tu dois offrir un cadeau cette année :</p>
+
+                    <!-- CARTE RESULTAT -->
+                    <div class="reveal-card">
+                        <div class="reveal-title">Ta cible est</div>
+                        <h2 class="reveal-name">{cible}</h2>
+                    </div>
+
+                    <!-- DETAILS EVENT -->
+                    <div class="details">
+                        <div class="detail-item">📅 <strong>Date :</strong> {date}</div>
+                        <div class="detail-item">💰 <strong>Budget Max :</strong> {prix}€</div>
+                        
+                        <!-- Message optionnel ajouté lors de l'envoi -->
+                        <div class="message-box">
+                            "Un petit message pour toi..."
+                        </div>
+                    </div>
+
+                    <p style="margin-top: 30px; font-size: 14px; color: #888;">Garde le secret jusqu'au jour J ! 🤫</p>
+                </td>
+            </tr>
+
+            <!-- FOOTER -->
+            <tr>
+                <td class="footer">
+                    Généré avec ❤️ par HoHoSwap<br>
+                    L'application de Secret Santa simple et gratuite.
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>`;
 
 export const Step3_Draw = () => {
     const { participants, eventDetails, assignments, setAssignments, setStep, saveSession } = useWizard();
@@ -208,8 +289,12 @@ export const Step3_Draw = () => {
                                 <div className="flex gap-2"><span className="font-bold text-slate-700">De :</span> Père Noël via Secret Santa App</div>
                             </div>
                             {/* Mail Body */}
-                            <div className="p-4 text-sm whitespace-pre-wrap text-slate-600 leading-relaxed font-sans">
-                                {getPreviewText()}
+                            <div className="flex-1 min-h-[400px] relative bg-slate-50">
+                                <iframe
+                                    srcDoc={getPreviewText().replace('{{message}}', Object.values(assignments).length > 0 ? '' : 'Votre message personnel ici...')}
+                                    className="w-full h-full absolute inset-0 border-0"
+                                    title="Email Preview"
+                                />
                             </div>
                         </div>
 
