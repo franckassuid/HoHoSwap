@@ -69,11 +69,13 @@ export const WizardLayout = ({ children }: { children: React.ReactNode }) => {
                 <div className="max-w-4xl mx-auto flex items-center justify-between">
                     <div
                         onClick={handleLogoClick}
-                        className="flex items-center space-x-2 cursor-pointer hover:opacity-90 transition-opacity"
+                        className="flex items-center space-x-3 cursor-pointer hover:opacity-90 transition-opacity"
                         title="Retour à l'accueil"
                     >
-                        <img src="/logo.png" alt="HoHoSwap Logo" className="w-8 h-8 object-contain" />
-                        <h1 className="text-xl font-bold tracking-tight">HoHoSwap</h1>
+                        <div className="bg-white p-1 rounded-full shadow-sm">
+                            <img src="/logo.png" alt="HoHoSwap Logo" className="w-12 h-12 object-contain" />
+                        </div>
+                        <h1 className="text-2xl font-bold tracking-tight">HoHoSwap</h1>
                     </div>
                 </div>
             </header>
