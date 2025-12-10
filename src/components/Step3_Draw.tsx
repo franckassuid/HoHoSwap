@@ -101,7 +101,7 @@ export const Step3_Draw = () => {
 
     const [error, setError] = useState<string | null>(null);
     const [showResults, setShowResults] = useState(false);
-    const [emailTemplate, setEmailTemplate] = useState(DEFAULT_TEMPLATE);
+    const [customMessage, setCustomMessage] = useState('');
     const [sendingState, setSendingState] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [progress, setProgress] = useState(0);
 
@@ -112,6 +112,10 @@ export const Step3_Draw = () => {
         date: eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '25/12/2024',
         prix: eventDetails.budget
     } : null;
+
+    const getFullEmailContent = (message: string) => {
+        return DEFAULT_TEMPLATE.replace('{{message}}', message || "Un petit mot pour toi...");
+    };
 
     const handleDraw = () => {
         setError(null);
@@ -159,11 +163,11 @@ export const Step3_Draw = () => {
                 date: eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '',
                 prix: eventDetails.budget,
                 to_email: giver.email,
-                message: emailTemplate
-                    .replace('{donneur}', giver.name)
-                    .replace('{cible}', receiver.name)
-                    .replace('{date}', eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '')
-                    .replace('{prix}', eventDetails.budget)
+                message: getFullEmailContent(customMessage)
+                    .replace(/{donneur}/g, giver.name)
+                    .replace(/{cible}/g, receiver.name)
+                    .replace(/{date}/g, eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '')
+                    .replace(/{prix}/g, eventDetails.budget)
             };
 
             try {
@@ -186,9 +190,9 @@ export const Step3_Draw = () => {
 
     const hasResults = Object.keys(assignments).length > 0 && Object.keys(assignments).length === participants.length;
 
-    const getPreviewText = () => {
+    const getPreviewHtml = () => {
         if (!previewData) return '';
-        return emailTemplate
+        return getFullEmailContent(customMessage)
             .replace(/{donneur}/g, previewData.donneur)
             .replace(/{cible}/g, previewData.cible)
             .replace(/{date}/g, previewData.date)
@@ -260,22 +264,19 @@ export const Step3_Draw = () => {
 
             {hasResults && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t pt-8">
-                    {/* Template Editor */}
+                    {/* Message Editor */}
                     <div className="space-y-4">
                         <h3 className="font-semibold flex items-center gap-2 text-slate-800">
-                            <Mail className="w-5 h-5 text-red-600" /> Modèle d'email
+                            <Mail className="w-5 h-5 text-red-600" /> Personnaliser l'email
                         </h3>
-                        <div className="bg-slate-50 p-2 rounded text-xs text-slate-500 mb-2 space-x-2">
-                            <span>Variables :</span>
-                            <code className="bg-white px-1 rounded shadow-sm text-red-500">{'{donneur}'}</code>
-                            <code className="bg-white px-1 rounded shadow-sm text-red-500">{'{cible}'}</code>
-                            <code className="bg-white px-1 rounded shadow-sm text-red-500">{'{date}'}</code>
-                            <code className="bg-white px-1 rounded shadow-sm text-red-500">{'{prix}'}</code>
-                        </div>
+                        <p className="text-sm text-slate-500">
+                            Ajoutez un petit mot personnel qui apparaîtra dans l'email envoyé à tous les participants.
+                        </p>
                         <textarea
-                            value={emailTemplate}
-                            onChange={(e) => setEmailTemplate(e.target.value)}
-                            className="w-full h-48 p-3 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-sm bg-white"
+                            value={customMessage}
+                            onChange={(e) => setCustomMessage(e.target.value)}
+                            placeholder="Ex: Hâte de voir vos cadeaux ! N'oubliez pas le budget de 50€ max..."
+                            className="w-full h-32 p-3 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-sm bg-white"
                         />
                     </div>
 
@@ -291,7 +292,7 @@ export const Step3_Draw = () => {
                             {/* Mail Body */}
                             <div className="flex-1 min-h-[400px] relative bg-slate-50">
                                 <iframe
-                                    srcDoc={getPreviewText().replace('{{message}}', Object.values(assignments).length > 0 ? '' : 'Votre message personnel ici...')}
+                                    srcDoc={getPreviewHtml()}
                                     className="w-full h-full absolute inset-0 border-0"
                                     title="Email Preview"
                                 />
