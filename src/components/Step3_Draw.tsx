@@ -278,11 +278,22 @@ export const Step3_Draw = () => {
                             placeholder="Ex: Hâte de voir vos cadeaux ! N'oubliez pas le budget de 50€ max..."
                             className="w-full h-32 p-3 text-sm rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 shadow-sm bg-white"
                         />
+                        <p className="text-xs text-slate-400 mt-2 italic">
+                            Le message se met à jour automatiquement dans l'aperçu ci-contre.
+                        </p>
                     </div>
 
                     {/* Preview & Send */}
                     <div className="space-y-4 flex flex-col">
-                        <h3 className="font-semibold text-slate-700">Aperçu du mail</h3>
+                        <div className="flex justify-between items-baseline">
+                            <h3 className="font-semibold text-slate-700">Aperçu du mail</h3>
+                            <button
+                                onClick={() => setCustomMessage(customMessage)} // Force re-render if needed, but state change should do it
+                                className="text-xs text-red-600 hover:text-red-800 underline"
+                            >
+                                Rafraîchir l'aperçu
+                            </button>
+                        </div>
                         <div className="flex-1 bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
                             {/* Mail Header Preview */}
                             <div className="bg-slate-50 border-b border-slate-100 p-3 text-xs text-slate-500 flex flex-col gap-1">
