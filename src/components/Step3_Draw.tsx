@@ -76,7 +76,7 @@ const DEFAULT_TEMPLATE = `<!DOCTYPE html>
                         
                         <!-- Message optionnel ajouté lors de l'envoi -->
                         <div class="message-box">
-                            "Un petit message pour toi..."
+                            "{message}"
                         </div>
                     </div>
 

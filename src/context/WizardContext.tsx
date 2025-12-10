@@ -247,36 +247,14 @@ export const WizardProvider = ({ children }: { children: ReactNode }) => {
                     step: state.step
                 }, ...prev]);
             } else {
-                // Empty state, set defaults and inject fake data for testing
-                const fakeParticipants: Participant[] = [
-                    { id: generateId(), name: 'Léa', email: 'lea@gmail.com', exclusions: [] },
-                    { id: generateId(), name: 'Kiki', email: 'kiki@gmail.com', exclusions: [] },
-                    { id: generateId(), name: 'Lolo', email: 'lolo@gmail.com', exclusions: [] }
-                ];
-
-                const newId = generateId();
+                // Empty state, set defaults
                 setState(prev => ({
                     ...prev,
-                    sessionId: newId,
-                    participants: fakeParticipants,
                     eventDetails: {
-                        name: 'Noel de la mif',
-                        budget: '40',
+                        ...prev.eventDetails,
                         date: `${new Date().getFullYear()}-12-25`
                     }
                 }));
-                setSavedSessions(prev => [{
-                    id: newId,
-                    lastUpdated: Date.now(),
-                    eventDetails: {
-                        name: 'Noel de la mif',
-                        budget: '40',
-                        date: `${new Date().getFullYear()}-12-25`
-                    },
-                    participants: fakeParticipants,
-                    assignments: {},
-                    step: 1
-                }, ...prev]);
             }
         }
     }, []);
