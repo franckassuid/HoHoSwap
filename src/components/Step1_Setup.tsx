@@ -188,27 +188,7 @@ export const Step1_Setup = () => {
                     {error && <p className="text-red-600 text-xs mt-2">{error}</p>}
                 </form>
 
-                <div className="flex justify-end mb-4">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            if (!eventDetails.name) updateEventDetails({ name: "Noël Test" });
-                            if (!eventDetails.date) updateEventDetails({ date: "2025-12-25" });
-                            if (!eventDetails.budget) updateEventDetails({ budget: "50" });
 
-                            const fakes = [
-                                { name: "Alice", email: "alice@exemple.com" },
-                                { name: "Bob", email: "bob@exemple.com" },
-                                { name: "Charlie", email: "charlie@exemple.com" },
-                                { name: "David", email: "david@exemple.com" }
-                            ];
-                            fakes.forEach(p => addParticipant(p));
-                        }}
-                        className="text-xs text-slate-400 hover:text-slate-600 underline"
-                    >
-                        Remplir avec des données de test
-                    </button>
-                </div>
 
                 {/* List */}
                 {participants.length === 0 ? (

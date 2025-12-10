@@ -135,13 +135,15 @@ export const Step3_Draw = () => {
             const receiver = participants.find(p => p.id === receiverId);
             if (!receiver) continue;
 
+            const hasMessage = !!previewMessage && previewMessage.trim().length > 0;
             const templateParams = {
                 donneur: giver.name,
                 cible: receiver.name,
                 date: eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '',
                 prix: eventDetails.budget,
                 to_email: giver.email,
-                message: (previewMessage || "")
+                message: hasMessage ? `"${previewMessage}"` : "",
+                message_display: hasMessage ? "block" : "none"
             };
 
             try {
