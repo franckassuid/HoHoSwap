@@ -16,9 +16,9 @@ const DEFAULT_TEMPLATE_PREVIEW = `<!DOCTYPE html>
         body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
         .wrapper { width: 100%; table-layout: fixed; background-color: #f4f4f4; padding-bottom: 40px; }
         .main-container { background-color: #ffffff; margin: 0 auto; max-width: 600px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { display: flex; flex-direction: column; align-items: center; background-color: #dc2626; padding: 30px 20px; text-align: center; }
-        .header h1 { color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 1px; }
-        .logo { height: 90px; width: 90px; margin-bottom: 10px; display: block; object-fit: contain; }
+        .header { background-color: #dc2626; padding: 30px 20px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 10px 0 0 0; font-size: 28px; letter-spacing: 1px; line-height: 1.2; }
+        .logo { display: block; margin: 0 auto; border: 0; pointer-events: none; }
         .content { padding: 40px 30px; color: #333333; text-align: center; }
         .greeting { font-size: 18px; margin-bottom: 30px; color: #555555; }
         .reveal-card { background-color: #fef2f2; border: 2px dashed #dc2626; border-radius: 12px; padding: 25px; margin: 20px 0; }
@@ -27,7 +27,7 @@ const DEFAULT_TEMPLATE_PREVIEW = `<!DOCTYPE html>
         .details { margin-top: 30px; text-align: left; background-color: #f8fafc; border-radius: 8px; padding: 20px; }
         .detail-item { font-size: 20px; margin-bottom: 10px; color: #475569; }
         .detail-item strong { color: #0f172a; }
-        .message-box { margin-top: 20px; font-style: italic; color: #64748b; font-size: 14px; border-left: 3px solid #cbd5e1; padding-left: 15px; text-align: left; }
+        .message-box { margin-top: 20px; font-style: italic; color: #64748b; font-size: 14px; border-left: 3px solid #cbd5e1; padding-left: 15px; text-align: left; line-height: 1.5; }
         .footer { background-color: #1e293b; color: #94a3b8; padding: 20px; text-align: center; font-size: 12px; }
     </style>
 </head>
@@ -35,23 +35,25 @@ const DEFAULT_TEMPLATE_PREVIEW = `<!DOCTYPE html>
     <div class="wrapper">
         <table class="main-container" align="center" border="0" cellpadding="0" cellspacing="0">
             <tr>
-                <td class="header">
-                    <img class="logo" src="https://raw.githubusercontent.com/franckassuid/HoHoSwap/refs/heads/main/public/logo.png" alt="HoHoSwap Logo">
-                    <h1>HoHoSwap</h1>
+                <td class="header" align="center">
+                    <img class="logo" src="https://raw.githubusercontent.com/franckassuid/HoHoSwap/refs/heads/main/public/logo.png" alt="HoHoSwap" width="90" height="90">
+                    <h1>{{event_name}}</h1>
                 </td>
             </tr>
             <tr>
                 <td class="content">
-                    <p class="greeting">Bonjour <strong>{donneur}</strong> !</p>
+                    <p class="greeting">Bonjour <strong>{{donneur}}</strong> !</p>
                     <p style="font-size: 16px; line-height: 1.5;">Le tirage au sort a été effectué.<br>Voici la personne à qui tu dois offrir un cadeau cette année :</p>
                     <div class="reveal-card">
                         <div class="reveal-title">Ta cible est</div>
-                        <h2 class="reveal-name">{cible}</h2>
+                        <h2 class="reveal-name">{{cible}}</h2>
                     </div>
                     <div class="details">
-                        <div class="detail-item">📅 <strong>Date :</strong> {date}</div>
-                        <div class="detail-item">💰 <strong>Budget Max :</strong> {prix}€</div>
-                        {message_block}
+                        <div class="detail-item">📅 <strong>Date :</strong> {{date}}</div>
+                        <div class="detail-item">💰 <strong>Budget Max :</strong> {{prix}}€</div>
+                        <div class="message-box" style="display: {{message_display}};">
+                            {{message}}
+                        </div>
                     </div>
                     <p style="margin-top: 30px; font-size: 14px; color: #888;">Garde le secret jusqu'au jour J ! 🤫</p>
                 </td>
@@ -82,15 +84,23 @@ export const Step3_Draw = () => {
         donneur: participants[0].name,
         cible: 'Destinataire Exemple',
         date: eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '25/12/2024',
-        prix: eventDetails.budget
+        prix: eventDetails.budget,
+        event_name: eventDetails.name || "Secret Santa"
     } : null;
 
 
-    const getFullEmailContent = (message: string) => {
-        const messageBlock = message.trim()
-            ? `<div class="message-box">"${message}"</div>`
-            : '';
-        return DEFAULT_TEMPLATE_PREVIEW.replace('{message_block}', messageBlock);
+    const getPreviewHtml = () => {
+        if (!previewData) return '';
+        const hasMessage = previewMessage && previewMessage.trim().length > 0;
+
+        return DEFAULT_TEMPLATE_PREVIEW
+            .replace(/{{donneur}}/g, previewData.donneur)
+            .replace(/{{cible}}/g, previewData.cible)
+            .replace(/{{date}}/g, previewData.date)
+            .replace(/{{prix}}/g, previewData.prix)
+            .replace(/{{event_name}}/g, previewData.event_name)
+            .replace(/{{message}}/g, previewMessage || '')
+            .replace(/{{message_display}}/g, hasMessage ? 'block' : 'none');
     };
 
     const handleDraw = () => {
@@ -142,7 +152,8 @@ export const Step3_Draw = () => {
                 date: eventDetails.date ? format(new Date(eventDetails.date), 'dd/MM/yyyy') : '',
                 prix: eventDetails.budget,
                 to_email: giver.email,
-                message: hasMessage ? `"${previewMessage}"` : "",
+                event_name: eventDetails.name,
+                message: hasMessage ? previewMessage : "",
                 message_display: hasMessage ? "block" : "none"
             };
 
@@ -165,14 +176,7 @@ export const Step3_Draw = () => {
 
     const hasResults = Object.keys(assignments).length > 0 && Object.keys(assignments).length === participants.length;
 
-    const getPreviewHtml = () => {
-        if (!previewData) return '';
-        return getFullEmailContent(previewMessage)
-            .replace(/{donneur}/g, previewData.donneur)
-            .replace(/{cible}/g, previewData.cible)
-            .replace(/{date}/g, previewData.date)
-            .replace(/{prix}/g, previewData.prix);
-    };
+
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
